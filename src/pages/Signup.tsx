@@ -1,19 +1,41 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Link } from "react-router-dom"
-import { Eye, EyeOff, Mail, Lock, User, Heart } from "lucide-react"
-import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { Eye, EyeOff, Mail, Lock, Heart, User } from "lucide-react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { signupSchema, SignupFormData } from "@/lib/validations"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
+import * as z from "zod"
+
+const signupSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
+})
+
+type SignupFormData = z.infer<typeof signupSchema>
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { toast } = useToast()
+  const { login, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/discover')
+    }
+  }, [isAuthenticated, navigate])
   
   const {
     register,
@@ -25,19 +47,17 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupFormData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // In a real app, you'd create the account first, then login
+      await login(data.email, data.password)
       
       toast({
-        title: "Welcome to RizzMate! 🎉",
-        description: "Your account has been created successfully. Please check your email to verify your account.",
+        title: "Welcome to RizzMate! 💕",
+        description: "Your account has been created successfully",
       })
-      
-      console.log("Signup data:", data)
     } catch (error) {
       toast({
         title: "Signup failed",
-        description: "Something went wrong. Please try again.",
+        description: "Please try again",
         variant: "destructive",
       })
     }
@@ -56,56 +76,35 @@ export default function Signup() {
             </span>
           </Link>
           <h1 className="text-2xl font-bold text-foreground mb-2">Join RizzMate</h1>
-          <p className="text-muted-foreground">Start your journey to find your perfect match</p>
+          <p className="text-muted-foreground">Create your account and start your romantic journey</p>
         </div>
 
         <Card className="shadow-card bg-gradient-card border-primary/10">
           <CardHeader className="space-y-1 text-center pb-4">
-            <CardTitle className="text-xl text-foreground">Create Account</CardTitle>
+            <CardTitle className="text-xl text-foreground">Sign Up</CardTitle>
             <CardDescription>
-              Fill in your details to get started
+              Enter your details to create your account
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-sm font-medium">
-                    First Name
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="John"
-                      className="pl-10 border-input focus:border-primary/50 focus:ring-primary/20"
-                      {...register("firstName")}
-                    />
-                  </div>
-                  {errors.firstName && (
-                    <p className="text-xs text-destructive">{errors.firstName.message}</p>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    className="pl-10 border-input focus:border-primary/50 focus:ring-primary/20"
+                    {...register("name")}
+                  />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-sm font-medium">
-                    Last Name
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      className="pl-10 border-input focus:border-primary/50 focus:ring-primary/20"
-                      {...register("lastName")}
-                    />
-                  </div>
-                  {errors.lastName && (
-                    <p className="text-xs text-destructive">{errors.lastName.message}</p>
-                  )}
-                </div>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -117,7 +116,7 @@ export default function Signup() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder="your@email.com"
                     className="pl-10 border-input focus:border-primary/50 focus:ring-primary/20"
                     {...register("email")}
                   />
@@ -136,7 +135,7 @@ export default function Signup() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a strong password"
+                    placeholder="Create a password"
                     className="pl-10 pr-10 border-input focus:border-primary/50 focus:ring-primary/20"
                     {...register("password")}
                   />
@@ -189,25 +188,6 @@ export default function Signup() {
                 {errors.confirmPassword && (
                   <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
                 )}
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  className="rounded border-input focus:ring-primary/20 mt-1"
-                  required
-                />
-                <Label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
-                  I agree to the{" "}
-                  <Link to="/terms" className="text-primary hover:text-primary/80 transition-colors">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link to="/privacy" className="text-primary hover:text-primary/80 transition-colors">
-                    Privacy Policy
-                  </Link>
-                </Label>
               </div>
 
               <Button

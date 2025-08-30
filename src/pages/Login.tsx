@@ -1,18 +1,28 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Eye, EyeOff, Mail, Lock, Heart } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { loginSchema, LoginFormData } from "@/lib/validations"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const { toast } = useToast()
+  const { login, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/discover')
+    }
+  }, [isAuthenticated, navigate])
   
   const {
     register,
@@ -24,15 +34,12 @@ export default function Login() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await login(data.email, data.password)
       
       toast({
         title: "Welcome back! 💕",
         description: "You've successfully signed in to RizzMate",
       })
-      
-      console.log("Login data:", data)
     } catch (error) {
       toast({
         title: "Login failed",

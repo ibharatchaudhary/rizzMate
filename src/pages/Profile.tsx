@@ -1,38 +1,39 @@
-import { useState } from "react"
-import { Camera, Edit2, MapPin, Heart, User, Briefcase, GraduationCap, Calendar, Ruler, PawPrint } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Camera, Edit2, MapPin, Heart, User, Briefcase, GraduationCap, Ruler, PawPrint } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Header } from "@/components/Header"
+import { useAuth } from "@/contexts/AuthContext"
+import ProfileEditor from "@/components/ProfileEditor"
+import { useNavigate } from "react-router-dom"
+import { useToast } from "@/hooks/use-toast"
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false)
-  const [profile, setProfile] = useState({
-    name: "Alex Jordan",
-    age: "28",
-    gender: "Non-binary",
-    orientation: "Pansexual",
-    location: "San Francisco, CA",
-    bio: "Adventure seeker, coffee enthusiast, and dog lover. Looking for genuine connections and memorable experiences.",
-    occupation: "Software Engineer",
-    education: "UC Berkeley",
-    interests: ["Hiking", "Photography", "Cooking", "Travel", "Music"],
-    height: "5'8\"",
-    fitness: "Regularly active",
-    pets: "Dog lover",
-    relationshipGoal: "Long-term relationship",
-    ageRange: "25-35",
-    genderPreference: "Any"
-  })
+  const { user, isAuthenticated, updateProfile } = useAuth()
+  const navigate = useNavigate()
+  const { toast } = useToast()
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/')
+    }
+  }, [isAuthenticated, navigate])
+
+  if (!user) {
+    return null
+  }
+
+  const handleSave = (updatedProfile: Partial<typeof user>) => {
+    updateProfile(updatedProfile)
     setIsEditing(false)
-    // Here you would save to backend
+    toast({
+      title: "Profile updated! ✨",
+      description: "Your changes have been saved successfully",
+    })
   }
 
   return (
@@ -45,9 +46,9 @@ export default function Profile() {
             <CardContent className="p-6 text-center">
               <div className="relative mb-4">
                 <Avatar className="w-32 h-32 mx-auto">
-                  <AvatarImage src="/placeholder.svg" />
+                  <AvatarImage src={user.avatar || "/placeholder.svg"} />
                   <AvatarFallback className="bg-gradient-primary text-white text-2xl">
-                    {profile.name.split(' ').map(n => n[0]).join('')}
+                    {user.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <Button
@@ -59,17 +60,17 @@ export default function Profile() {
                 </Button>
               </div>
               
-              <h1 className="text-2xl font-bold mb-2">{profile.name}</h1>
-              <p className="text-muted-foreground mb-4">{profile.age} years old</p>
+              <h1 className="text-2xl font-bold mb-2">{user.name}</h1>
+              <p className="text-muted-foreground mb-4">{user.age} years old</p>
               
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span>{profile.location}</span>
+                  <span>{user.location}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <Heart className="h-4 w-4 text-primary" />
-                  <span>{profile.orientation}</span>
+                  <span>{user.orientation}</span>
                 </div>
               </div>
 
@@ -80,68 +81,15 @@ export default function Profile() {
                     Edit Profile
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Edit Profile</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium">Name</label>
-                        <Input value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Age</label>
-                        <Input value={profile.age} onChange={(e) => setProfile({...profile, age: e.target.value})} />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Bio</label>
-                      <Textarea 
-                        value={profile.bio} 
-                        onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                        className="min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium">Gender</label>
-                        <Select value={profile.gender} onValueChange={(value) => setProfile({...profile, gender: value})}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
-                            <SelectItem value="Non-binary">Non-binary</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Sexual Orientation</label>
-                        <Select value={profile.orientation} onValueChange={(value) => setProfile({...profile, orientation: value})}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Straight">Straight</SelectItem>
-                            <SelectItem value="Gay">Gay</SelectItem>
-                            <SelectItem value="Lesbian">Lesbian</SelectItem>
-                            <SelectItem value="Bisexual">Bisexual</SelectItem>
-                            <SelectItem value="Pansexual">Pansexual</SelectItem>
-                            <SelectItem value="Asexual">Asexual</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <Button onClick={handleSave} className="w-full bg-gradient-primary hover:opacity-90">
-                      Save Changes
-                    </Button>
-                  </div>
+                  <ProfileEditor 
+                    profile={user} 
+                    onSave={handleSave}
+                    onCancel={() => setIsEditing(false)}
+                  />
                 </DialogContent>
               </Dialog>
             </CardContent>
@@ -158,23 +106,23 @@ export default function Profile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
+                <p className="text-muted-foreground leading-relaxed">{user.bio}</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-4 w-4 text-primary" />
-                    <span>{profile.occupation}</span>
+                    <span>{user.occupation}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <GraduationCap className="h-4 w-4 text-primary" />
-                    <span>{profile.education}</span>
+                    <span>{user.education}</span>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-medium mb-2">Interests</h4>
                   <div className="flex flex-wrap gap-2">
-                    {profile.interests.map((interest, index) => (
+                    {user.interests.map((interest, index) => (
                       <Badge key={index} variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
                         {interest}
                       </Badge>
@@ -193,15 +141,15 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-center gap-2">
                     <Ruler className="h-4 w-4 text-primary" />
-                    <span>{profile.height}</span>
+                    <span>{user.height}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Heart className="h-4 w-4 text-primary" />
-                    <span>{profile.fitness}</span>
+                    <span>{user.fitness}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <PawPrint className="h-4 w-4 text-primary" />
-                    <span>{profile.pets}</span>
+                    <span>{user.pets}</span>
                   </div>
                 </div>
               </CardContent>
@@ -216,16 +164,16 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Age Range</label>
-                    <p className="font-medium">{profile.ageRange}</p>
+                    <p className="font-medium">{user.ageRange}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Looking For</label>
-                    <p className="font-medium">{profile.genderPreference}</p>
+                    <p className="font-medium">{user.genderPreference}</p>
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Relationship Goal</label>
-                  <p className="font-medium">{profile.relationshipGoal}</p>
+                  <p className="font-medium">{user.relationshipGoal}</p>
                 </div>
               </CardContent>
             </Card>
