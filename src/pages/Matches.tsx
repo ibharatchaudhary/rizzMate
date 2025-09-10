@@ -84,10 +84,10 @@ export default function Matches() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Your Matches
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-white opacity-80">
               {mockMatches.length} mutual {mockMatches.length === 1 ? 'match' : 'matches'}
             </p>
           </div>

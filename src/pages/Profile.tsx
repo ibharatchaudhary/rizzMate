@@ -51,14 +51,36 @@ export default function Profile() {
                     {user.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="avatar-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onloadend = () => {
+                        updateProfile({ avatar: reader.result as string })
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                  }}
+                />
+
+                {/* Camera Button */}
                 <Button
                   size="icon"
                   variant="outline"
+                  onClick={() => document.getElementById("avatar-upload")?.click()}
                   className="absolute -bottom-2 -right-2 rounded-full bg-background/80 backdrop-blur-sm"
                 >
                   <Camera className="h-4 w-4" />
                 </Button>
               </div>
+
               
               <h1 className="text-2xl font-bold mb-2">{user.name}</h1>
               <p className="text-muted-foreground mb-4">{user.age} years old</p>

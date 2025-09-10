@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "name": "Peter Parker",
+    "age": 21,
+    "location": "NYC, US",
+    "bio": "Science lover, Museum enthusiast, always up for new adventures!",
+    "occupation": "Saving the day!",
+    "education": "MIT",
+    "interests": ["Science", "Museums", "Travel"],
+    "photos": ["/public/images/peter.jpg"]
+  },
+  {
+    "id": 2,
+    "name": "Marcus",
+    "age": 30,
+    "location": "Oakland, CA",
+    "bio": "Foodie chef who loves hiking and trying new restaurants.",
+    "occupation": "Chef",
+    "education": "Culinary Institute",
+    "interests": ["Cooking", "Hiking", "Food"],
+    "photos": ["/placeholder.svg"]
+  },
+  {
+    "id": 3,
+    "name": "Sophie",
+    "age": 24,
+    "location": "Berkeley, CA",
+    "bio": "PhD student, book lover, coffee addict ☕️",
+    "occupation": "Graduate Student",
+    "education": "UC Berkeley",
+    "interests": ["Reading", "Research", "Coffee"],
+    "photos": ["/placeholder.svg"]
+  }
+]

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import users from '@/data/users.json' // <-- Import mock users
 
 export interface UserProfile {
   id: string
@@ -52,50 +53,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check for existing auth on app load
   useEffect(() => {
-    const checkAuth = () => {
-      const storedUser = localStorage.getItem('rizzmate_user')
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser)
-          setUser(parsedUser)
-        } catch (error) {
-          console.error('Error parsing stored user:', error)
-          localStorage.removeItem('rizzmate_user')
-        }
+    const storedUser = localStorage.getItem('rizzmate_user')
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser)
+        setUser(parsedUser)
+      } catch (error) {
+        console.error('Error parsing stored user:', error)
+        localStorage.removeItem('rizzmate_user')
       }
-      setIsLoading(false)
     }
-
-    checkAuth()
+    setIsLoading(false)
   }, [])
 
   const login = async (email: string, password: string) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Create a default user profile
-    const newUser: UserProfile = {
-      id: Date.now().toString(),
-      name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-      email,
-      age: '25',
-      gender: 'Prefer not to say',
-      orientation: 'Straight',
-      location: 'San Francisco, CA',
-      bio: 'Hello! I\'m new to RizzMate and looking forward to meeting new people.',
-      occupation: 'Professional',
-      education: 'College Graduate',
-      interests: ['Music', 'Travel', 'Food'],
-      height: '5\'6"',
-      fitness: 'Occasionally active',
-      pets: 'No pets',
-      relationshipGoal: 'Long-term relationship',
-      ageRange: '22-30',
-      genderPreference: 'Any'
+    setIsLoading(true)
+    await new Promise(resolve => setTimeout(resolve, 500)) // Simulate API delay
+
+    // Find matching user in users.json
+    const foundUser = users.find(u => u.email === email && u.password === password)
+
+    if (!foundUser) {
+      setIsLoading(false)
+      throw new Error('Invalid email or password') // Let UI handle showing error
     }
 
-    setUser(newUser)
-    localStorage.setItem('rizzmate_user', JSON.stringify(newUser))
+    // Save user (without password)
+    const { password: _, ...userWithoutPassword } = foundUser
+    setUser(userWithoutPassword)
+    localStorage.setItem('rizzmate_user', JSON.stringify(userWithoutPassword))
+    setIsLoading(false)
     navigate('/discover')
   }
 
@@ -107,20 +94,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateProfile = (profileUpdates: Partial<UserProfile>) => {
     if (!user) return
-    
+
     const updatedUser = { ...user, ...profileUpdates }
     setUser(updatedUser)
     localStorage.setItem('rizzmate_user', JSON.stringify(updatedUser))
   }
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    login,
-    logout,
-    updateProfile,
-    isLoading
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated: !!user,
+      login,
+      logout,
+      updateProfile,
+      isLoading
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
